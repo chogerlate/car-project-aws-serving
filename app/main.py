@@ -1,5 +1,4 @@
 from typing import Union
-
 from fastapi import FastAPI
 from pydantic import BaseModel
 from app.model import cnnModel
@@ -24,12 +23,13 @@ S3_CAR_PART_OBJECT_NAME = os.getenv('S3_CAR_PART_OBJECT_NAME')
 S3_CAR_DAMAGE_OBJECT_NAME = os.getenv('S3_CAR_DAMAGE_OBJECT_NAME')
 S3_DEFORMATION_OBJECT_NAME = os.getenv('S3_DEFORMATION_OBJECT_NAME')
 
-CAR_PART_PATH = os.getenv('CAR_PART_PATH') 
-CAR_DAMAGE_PATH = os.getenv('CAR_DAMAGE_PATH')
-DEFORMATION_PATH = os.getenv('DEFORMATION_PATH')
+CAR_PART_PATH = "./car-part-detection-weight.pt"
+CAR_DAMAGE_PATH = "./car-damage-detection-weight.pt"
+DEFORMATION_PATH = "./deformation_classification.ckpt"
 
+# print("load env: ",type(S3_BUCKET)) # sanity check
 
-s3 = boto3.client('s3', region_name="ap-southeast-1")
+s3 = boto3.client('s3', region_name='ap-southeast-1')
 s3.download_file(S3_BUCKET, S3_CAR_PART_OBJECT_NAME, CAR_PART_PATH)
 s3.download_file(S3_BUCKET, S3_CAR_DAMAGE_OBJECT_NAME, CAR_DAMAGE_PATH) 
 s3.download_file(S3_BUCKET, S3_DEFORMATION_OBJECT_NAME, DEFORMATION_PATH)
