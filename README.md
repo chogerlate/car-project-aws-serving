@@ -1,6 +1,10 @@
 # car-project-aws-serving
 Codebase for deploying car damage severity detection model on the cloud.
 
+## Tech Stack
+AI: pytorch, pytorch lightning, ultralytics
+Deploy: FastAPI, Docker, AWS ECS, ECR
+
 ## .env setup 
 ```
 # AWS  
