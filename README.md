@@ -58,8 +58,7 @@ docker run -p 8080:80 -d car-project
 
 Noting :
 - The bounding box is in xyxyn format.
-- I made this easy for humans to understand, so it is not runable in any program.
-  
+- The Mask is in polygons format LIST[DICT(x,y)]   
 ```
 {
     "url":{
