@@ -1,9 +1,9 @@
 from typing import Union
 from fastapi import FastAPI
 from pydantic import BaseModel
-from app.model import cnnModel
 from ultralytics import YOLO
 from app.utils import *
+from app.model import cnnModel
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from fastapi import Response
@@ -73,12 +73,18 @@ def prediction(payload: image_payload) :
     
     car_part_results = pre_processing_results(car_part_results)
     car_damage_results = pre_processing_results(car_damage_results)
+    # print(car_part_results)
+    # print(car_damage_results)
     
     for i in range(len(car_damage_results)):
-        severity = severity_determiner(deformation_model, car_damage_results[i])
-        car_damage_results[i]['severity_id'] = severity
-        car_damage_results[i]['severity'] = [damage_severity_id_to_class[i] for i in severity] 
-    
+        try :
+            severity = severity_determiner(deformation_model, car_damage_results[i])
+            car_damage_results[i]['severity_id'] = severity
+            car_damage_results[i]['severity'] = [damage_severity_id_to_class[i] for i in severity] 
+        except:
+            car_damage_results[i]['severity_id'] = [0 for i in range(len(car_damage_results[i]['classes']))]
+            car_damage_results[i]['severity'] = ["None" for i in range(len(car_damage_results[i]['classes']))]
+
     pipeline_result = export_result_to_json(payload.urls, car_part_results, car_damage_results, car_part_model, car_damage_model)
     json_result = json.dumps(pipeline_result, cls =NumpyArrayEncoder)
 

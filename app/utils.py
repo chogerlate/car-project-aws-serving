@@ -18,9 +18,15 @@ def pre_processing_results(yolo_results):
         data_dict["class_ids"] = result.boxes.cls
         data_dict['classes'] = [id2class[i] for i in result.boxes.cls] 
         data_dict["boxes"] = result.boxes.xyxyn
-        data_dict["masks"] = result.masks.data 
         data_dict['conf'] = result.boxes.conf
         data_dict["instance_ids"] = [i for i in range(len(result.boxes.cls))]
+        
+         # "masks" error handling
+        if result.masks is None:
+            data_dict["masks"] = np.array([[[]]])
+        else :
+            data_dict["masks"] = result.masks.data 
+            
         results.append(data_dict)
          
     return results    
@@ -84,13 +90,16 @@ def find_intercept_report(car_damage_results, car_part_results):
         interception_damages = []
         interception_ids = [] 
         for damage_id, damage_mask in enumerate(car_damage_results['masks']):
-            if np.sum(damage_mask * part_mask) > 20:
-                if car_damage_results['classes'][damage_id] == "deformation":
-                    damage_name = car_damage_results["severity"][damage_id]+ " " + car_damage_results['classes'][damage_id]
-                else :
-                    damage_name = car_damage_results['classes'][damage_id]
-                # interception_ids.append(damage_id)
-                interception_damages.append(damage_name)
+            try :
+                if np.sum(damage_mask * part_mask) > 20:
+                    if car_damage_results['classes'][damage_id] == "deformation":
+                        damage_name = car_damage_results["severity"][damage_id]+ " " + car_damage_results['classes'][damage_id]
+                    else :
+                        damage_name = car_damage_results['classes'][damage_id]
+                    # interception_ids.append(damage_id)
+                    interception_damages.append(damage_name)
+            except:
+                pass    
                 
         # add row of interception
         # interception_instances['damage id'].append(interception_ids)
