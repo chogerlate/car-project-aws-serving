@@ -4,6 +4,9 @@ from pydantic import BaseModel
 from ultralytics import YOLO
 from app.utils import *
 from app.model import cnnModel
+# from utils import *
+# from model import cnnModel
+
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from fastapi import Response
@@ -29,6 +32,7 @@ DEFORMATION_PATH = "./deformation_classification.ckpt"
 
 # print("load env: ",type(S3_BUCKET)) # sanity check
 
+# download model from s3
 s3 = boto3.client('s3', region_name='ap-southeast-1')
 s3.download_file(S3_BUCKET, S3_CAR_PART_OBJECT_NAME, CAR_PART_PATH)
 s3.download_file(S3_BUCKET, S3_CAR_DAMAGE_OBJECT_NAME, CAR_DAMAGE_PATH) 

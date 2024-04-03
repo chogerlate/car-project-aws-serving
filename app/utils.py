@@ -10,6 +10,7 @@ def pre_processing_results(yolo_results):
     results = []
     id2class = yolo_results[0].names
     for result in yolo_results:
+        raw_result = result
         result = result.cpu().numpy()
         data_dict = dict()
         data_dict['orig_img'] = result.orig_img
@@ -22,10 +23,10 @@ def pre_processing_results(yolo_results):
         data_dict["instance_ids"] = [i for i in range(len(result.boxes.cls))]
         
          # "masks" error handling
-        if result.masks is None:
-            data_dict["masks"] = np.array([[[]]])
+        if result.masks == None:
+            data_dict["masks"] = np.array([[]])
         else :
-            data_dict["masks"] = result.masks.data 
+            data_dict["masks"] = raw_result.masks.cpu() 
             
         results.append(data_dict)
          
@@ -62,10 +63,12 @@ def detection_result_to_json_format(result: dict):
         # class
         result_dict['class'] = result['classes'][id]
         # coordinate points of polygons
-        polygons = sv.mask_to_polygons(result['masks'][id])
-        # get the first polygon
-        points = [{'x': float(row[0]), 'y': float(row[1])} for row in polygons[0]]
-        result_dict['points'] = points
+        if result['masks'] == None :
+            result_dict['points'] = None
+        else :
+            polygons = result['masks'].xy[id]
+            points = [{'x': float(row[0]), 'y': float(row[1])} for row in polygons]
+            result_dict['points'] = points
         # get class ID
         result_dict['class_id'] = result['class_ids'][id] 
         # severity if any
