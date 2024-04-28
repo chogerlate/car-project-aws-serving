@@ -1,5 +1,5 @@
 __pycache__/
 *.jpg
 .env
-.pt
-.ckpt
+*.pt
+*.ckpt

@@ -1,14 +1,15 @@
 from typing import Union
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Response, status
 from pydantic import BaseModel
 from ultralytics import YOLO
 from app.utils import *
 from app.model import cnnModel
 # from utils import *
 # from model import cnnModel
-
+from requests.exceptions import RequestException, MissingSchema
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
+from PIL import Image, UnidentifiedImageError
 from fastapi import Response
 import torch
 import json
@@ -16,7 +17,8 @@ from dotenv import load_dotenv
 import os 
 import uvicorn
 import boto3 
-
+import urllib.request
+import requests
 
 load_dotenv()
 
@@ -69,12 +71,43 @@ def read_root():
     return {"Hello": "World"}
 
 
+def download_and_open_image(url):
+  """Downloads the image from the URL and opens it using PIL.
+
+  Args:
+      url: The URL of the image.
+
+  Returns:
+      A PIL Image object if successful, None otherwise.
+  """
+  try:
+    response = requests.get(url, stream=True)
+    if response.status_code == 200:
+      return Image.open(response.raw)
+    else:
+      return None
+  except Exception as e:
+    print(f"Error downloading image from {url}: {e}")
+    return None
+     
 
 @app.post("/predict")
 def prediction(payload: image_payload) :
-    car_part_results = car_part_model(payload.urls, imgsz = 640 , conf=payload.car_part_conf_thres, iou=payload.car_part_iou_thres)
-    car_damage_results = car_damage_model(payload.urls, imgsz = 640,conf=payload.car_damage_conf_thres, iou=payload.car_damage_iou_thres)
-    
+    # initialize results
+    car_part_results =  [] 
+    car_damage_results = []
+
+    for url in payload.urls:
+
+        # download image from url 
+        image = download_and_open_image(url)
+        if not image: # if image is not downloaded
+            return Response(json.dumps({"error": f"Failed to download image from url: {url}"}), media_type='application/json', status_code=400)
+
+        car_part_results.extend(car_part_model.predict(image, imgsz=640, conf=payload.car_part_conf_thres, iou=payload.car_part_iou_thres, stream=True))
+        car_damage_results.extend(car_damage_model.predict(image, imgsz=640, conf=payload.car_damage_conf_thres, iou=payload.car_damage_iou_thres, stream=True))
+
+
     car_part_results = pre_processing_results(car_part_results)
     car_damage_results = pre_processing_results(car_damage_results)
     # print(car_part_results)

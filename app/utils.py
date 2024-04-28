@@ -82,24 +82,29 @@ def detection_result_to_json_format(result: dict):
         prediction_list.append(result_dict)
     return prediction_list
 
+
 def find_intercept_report(car_damage_results, car_part_results):
     interception_instances = {
         "car_part": [],
         "damage": [], 
         # "damage id":[],
     }
+    # print("find intersect", car_part_results, car_damage_results)
     for part_id, part_mask in enumerate(car_part_results['masks']):
-        
         interception_damages = []
-        interception_ids = [] 
+        # interception_ids = [] 
         for damage_id, damage_mask in enumerate(car_damage_results['masks']):
             try :
-                if np.sum(damage_mask * part_mask) > 20:
+                if np.sum(damage_mask.data.cpu().detach().numpy() * part_mask.data.cpu().detach().numpy()) > 10:
+        
+
                     if car_damage_results['classes'][damage_id] == "deformation":
                         damage_name = car_damage_results["severity"][damage_id]+ " " + car_damage_results['classes'][damage_id]
                     else :
                         damage_name = car_damage_results['classes'][damage_id]
-                    # interception_ids.append(damage_id)
+                    
+              
+
                     interception_damages.append(damage_name)
             except:
                 pass    
